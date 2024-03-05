@@ -13,8 +13,8 @@ app.use('/auth', require('./src/routes/authRoutes'));
 
 
 // Projects Routes
-
-app.use('/projects', authenticateToken, require('./src/routes/projectRoutes'));
+// authenticateToken
+app.use('/projects', require('./src/routes/projectRoutes'));
 
 
 // Protected route example
