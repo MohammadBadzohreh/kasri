@@ -13,7 +13,7 @@ app.use('/auth', require('./src/routes/authRoutes'));
 
 
 // Projects Routes
-// authenticateToken
+// add authenticateToken
 app.use('/projects', require('./src/routes/projectRoutes'));
 
 
