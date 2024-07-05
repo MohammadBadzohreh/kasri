@@ -1,9 +1,6 @@
-// middleware/authMiddleware.js
-
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const db = require('../services/db'); // Adjust the path as needed
-
 
 async function authenticateToken(req, res, next) {
   const token = req.header('Authorization');
@@ -43,7 +40,7 @@ async function authenticateToken(req, res, next) {
           res.setHeader('Authorization', newToken);
 
           // Continue with the request
-          req.user = { userId: decoded.userId, username: decoded.username };
+          req.user = { userId: decoded.userId, username: decoded.username, role: rows[0].role };
           next();
         } catch (error) {
           console.error('Error refreshing token:', error);
@@ -53,10 +50,32 @@ async function authenticateToken(req, res, next) {
         return res.status(403).json({ error: 'Forbidden: Invalid token.' });
       }
     } else {
-      req.user = user;
-      next();
+      // Retrieve user role from the database
+      try {
+        const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [user.userId]);
+        if (rows.length === 0) {
+          return res.status(401).json({ error: 'User not found.' });
+        }
+        req.user = { ...user, role: rows[0].role };
+        next();
+      } catch (error) {
+        console.error('Failed to retrieve user role:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
     }
   });
 }
 
-module.exports = authenticateToken;
+function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied. You do not have the required permissions.' });
+    }
+    next();
+  };
+}
+
+module.exports = {
+  authenticateToken,
+  authorizeRoles,
+};
