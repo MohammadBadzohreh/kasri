@@ -1,5 +1,3 @@
-// controllers/messageController.js
-
 const db = require('../services/db'); // Adjust the path as needed
 const multer = require('multer');
 const fs = require('fs');
@@ -20,12 +18,13 @@ const upload = multer({ storage: storage });
 exports.upload = upload.array('files');
 
 exports.sendMessage = async (req, res) => {
-  const { sender_id, receiver_id, message } = req.body;
-  const files = req.files.map(file => file.path);
+  const sender_id = req.user.userId; // Extract sender_id from authenticated token
+  const { receiver_id, message } = req.body;
+  const files = req.files ? req.files.map(file => file.path) : [];
 
   try {
     const result = await db.execute(
-      'INSERT INTO messages (sender_id, receiver_id, message, file_path, read) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO messages (sender_id, receiver_id, message, file_path, `read`) VALUES (?, ?, ?, ?, ?)',
       [sender_id, receiver_id, message, JSON.stringify(files), false]
     );
     res.status(201).json({ message: 'Message sent successfully', messageId: result.insertId });
@@ -70,7 +69,7 @@ exports.markMessageAsRead = async (req, res) => {
       return res.status(403).json({ error: 'Access denied.' });
     }
 
-    await db.execute('UPDATE messages SET read = ? WHERE id = ?', [true, messageId]);
+    await db.execute('UPDATE messages SET `read` = ? WHERE id = ?', [true, messageId]);
 
     res.status(200).json({ message: 'Message marked as read.' });
   } catch (error) {
