@@ -18,4 +18,9 @@ router.post('/refresh', authController.refresh);
 // Update user role route
 router.put('/update-role', authenticateToken ,authorizeRoles('admin'),authController.updateUserRole);
 
+// update user active 
+router.put('/active', authenticateToken ,authorizeRoles('admin'),authController.updateUserActiveStatus);
+
+
+
 module.exports = router;

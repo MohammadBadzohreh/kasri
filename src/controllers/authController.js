@@ -14,11 +14,17 @@ exports.register = async (req, res) => {
     }
 
     try {
+        // Check if the user is already registered and active
+        const [existingUsers] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+        if (existingUsers.length > 0 && existingUsers[0].active) {
+            return res.status(400).json({ error: 'User already registered and active.' });
+        }
+
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Save user and refresh token to the database
-        const [result] = await db.execute('INSERT INTO users (username, password, refresh_token) VALUES (?, ?, ?)', [username, hashedPassword, null]);
+        const [result] = await db.execute('INSERT INTO users (username, password, refresh_token, active) VALUES (?, ?, ?, ?)', [username, hashedPassword, null, true]);
 
         // Generate a JWT token and refresh token
         const token = jwt.sign({ userId: result.insertId, username }, config.jwt.accessSecret, { expiresIn: '30m' });
@@ -35,6 +41,8 @@ exports.register = async (req, res) => {
     }
 };
 
+
+
 exports.login = async (req, res) => {
     const { username, password } = req.body;
 
@@ -49,6 +57,52 @@ exports.login = async (req, res) => {
 
         if (rows.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials.' });
+        }
+
+        const user = rows[0];
+
+        // Check if the user is active
+        if (!user.active) {
+            return res.status(401).json({ error: 'User is inactive.' });
+        }
+
+        // Check password
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'Invalid credentials.' });
+        }
+
+        // Generate a new pair of JWT token and refresh token
+        const token = jwt.sign({ userId: user.id, username }, config.jwt.accessSecret, { expiresIn: '30m' });
+        const refreshToken = jwt.sign({ userId: user.id, username }, config.jwt.refreshSecret);
+
+        // Update the user's refresh token in the database
+        await db.execute('UPDATE users SET refresh_token = ? WHERE id = ?', [refreshToken, user.id]);
+
+        // Respond with the token and refresh token
+        res.json({ token, refreshToken });
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+exports.login = async (req, res) => {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Please provide both username and password.' });
+    }
+
+    try {
+        // Retrieve user from the database
+        const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+
+        if (rows.length === 0 || !rows[0].active) {
+            return res.status(401).json({ error: 'Invalid credentials or inactive user.' });
         }
 
         const user = rows[0];
@@ -90,8 +144,8 @@ exports.refresh = async (req, res) => {
         // Retrieve user from the database
         const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [decoded.userId]);
 
-        if (rows.length === 0 || rows[0].refresh_token !== refreshToken) {
-            return res.status(401).json({ error: 'Invalid refresh token.' });
+        if (rows.length === 0 || rows[0].refresh_token !== refreshToken || !rows[0].active) {
+            return res.status(401).json({ error: 'Invalid refresh token or inactive user.' });
         }
 
         // Generate a new pair of JWT token and refresh token
@@ -111,29 +165,54 @@ exports.refresh = async (req, res) => {
 
 exports.updateUserRole = async (req, res) => {
     const { userId, role } = req.body;
-  
+
     // Validate input
     if (!userId || !role) {
-      return res.status(400).json({ error: 'Please provide both userId and role.' });
+        return res.status(400).json({ error: 'Please provide both userId and role.' });
     }
-  
+
     // Ensure the role is valid
     const validRoles = ['admin', 'excellent_supervisor', 'site_manager'];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: 'Invalid role provided.' });
+        return res.status(400).json({ error: 'Invalid role provided.' });
     }
-  
+
     try {
-      // Update the user's role in the database
-      const result = await db.execute('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
-      
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'User not found.' });
-      }
-  
-      res.status(200).json({ message: 'User role updated successfully' });
+        // Update the user's role in the database
+        const result = await db.execute('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        res.status(200).json({ message: 'User role updated successfully' });
     } catch (error) {
-      console.error('Error updating user role:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error updating user role:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  };
+};
+
+
+exports.updateUserActiveStatus = async (req, res) => {
+    const { userId, active } = req.body;
+
+    // Validate input
+    if (!userId || typeof active !== 'boolean') {
+        return res.status(400).json({ error: 'Please provide both userId and active status.' });
+    }
+
+    try {
+        // Update the user's active status in the database
+        const [result] = await db.execute('UPDATE users SET active = ? WHERE id = ?', [active, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        res.status(200).json({ message: 'User active status updated successfully' });
+    } catch (error) {
+        console.error('Error updating user active status:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
