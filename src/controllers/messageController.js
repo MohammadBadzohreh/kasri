@@ -36,16 +36,27 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
   const { userId1, userId2 } = req.params;
+  const userId = parseInt(userId1); // Assuming userId1 is the parameter to check
 
-  if (req.user.role !== 'admin' && req.user.userId !== parseInt(userId1) && req.user.userId !== parseInt(userId2)) {
+  if (req.user.role !== 'admin' && req.user.userId !== userId && req.user.userId !== parseInt(userId2)) {
     return res.status(403).json({ error: 'Access denied.' });
   }
 
+  let sqlQuery;
+  let sqlParams;
+
+  if (userId2) {
+    // Both userId1 and userId2 are provided, retrieve messages between both users
+    sqlQuery = 'SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)';
+    sqlParams = [userId, parseInt(userId2), parseInt(userId2), userId];
+  } else {
+    // Only userId1 is provided, retrieve messages where userId1 is sender or receiver
+    sqlQuery = 'SELECT * FROM messages WHERE sender_id = ? OR receiver_id = ?';
+    sqlParams = [userId, userId];
+  }
+
   try {
-    const [messages] = await db.execute(
-      'SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)',
-      [userId1, userId2, userId2, userId1]
-    );
+    const [messages] = await db.execute(sqlQuery, sqlParams);
     res.status(200).json({ messages });
   } catch (error) {
     console.error('Failed to retrieve messages:', error);
