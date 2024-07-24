@@ -38,7 +38,7 @@ exports.getMessages = async (req, res) => {
   const { userId1, userId2 } = req.params;
   const userId = parseInt(userId1); // Assuming userId1 is the parameter to check
 
-  if (req.user.role !== 'admin' && req.user.userId !== userId && req.user.userId !== parseInt(userId2)) {
+  if (req.user.role !== 'admin' && req.user.userId !== userId && (userId2 && req.user.userId !== parseInt(userId2))) {
     return res.status(403).json({ error: 'Access denied.' });
   }
 

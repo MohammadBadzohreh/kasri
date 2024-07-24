@@ -15,6 +15,9 @@ app.use('/projects', authenticateToken, require('./src/routes/projectRoutes'));
 // Message Routes with authentication
 app.use('/messages', authenticateToken, require('./src/routes/messageRoutes'));
 
+// document Routes
+app.use('/document', require('./src/routes/documentRoutes'));
+
 // Protected route example
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This route is protected.' });

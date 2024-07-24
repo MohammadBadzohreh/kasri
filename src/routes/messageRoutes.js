@@ -11,7 +11,8 @@ const ensureUploadDirectoryExists = require('../middleware/ensureDirectoryExists
 router.post('/send', authenticateToken, ensureUploadDirectoryExists, messageController.upload, messageController.sendMessage);
 
 // Get messages between two users
-router.get('/:userId1/:userId2', authenticateToken, messageController.getMessages);
+router.get('/:userId1/:userId2?', authenticateToken, messageController.getMessages);
+//user id 2 is optional 
 
 // Mark message as read
 router.patch('/markAsRead/:messageId', authenticateToken, messageController.markMessageAsRead);
