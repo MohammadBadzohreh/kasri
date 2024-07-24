@@ -29,6 +29,13 @@ exports.validateProject = [
   body('contractor').notEmpty().withMessage('Contractor is required'),
   body('start_date').notEmpty().withMessage('Start date is required').isISO8601().withMessage('Start date must be a valid date'),
   body('end_date').notEmpty().withMessage('End date is required').isISO8601().withMessage('End date must be a valid date'),
+  body('application_type').isIn(['مسکونی', 'تجاری', 'مسکونی و تجاری', 'صنعتی', 'آموزشی', 'بهداشتی و درمانی', 'معدن', 'خدماتی(هتل، مسافرخانه و ...)', 'ورزشی']).withMessage('Invalid application type'),
+  body('number_of_floors').isInt().withMessage('Number of floors must be an integer'),
+  body('employee_id').isInt().withMessage('Employee ID must be an integer'),
+  body('consultant').notEmpty().withMessage('Consultant is required'),
+  body('supervisor').notEmpty().withMessage('Supervisor is required'),
+  body('number_of_manpower').isInt().withMessage('Number of manpower must be an integer'),
+  body('province_id').isInt().withMessage('Province ID must be an integer')
 ];
 
 exports.createProject = async (req, res) => {
@@ -37,14 +44,14 @@ exports.createProject = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, size_square_meters, contractor, start_date, end_date } = req.body;
+  const { name, size_square_meters, contractor, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id } = req.body;
   const address_of_the_first_file = req.files['address_of_the_first_file'] ? req.files['address_of_the_first_file'][0].path : '';
   const address_of_the_second_file = req.files['address_of_the_second_file'] ? req.files['address_of_the_second_file'][0].path : '';
 
   try {
     const result = await db.query(
-      'INSERT INTO projects (name, size_square_meters, contractor, address_of_the_first_file, address_of_the_second_file, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, size_square_meters, contractor, address_of_the_first_file, address_of_the_second_file, start_date, end_date]
+      'INSERT INTO projects (name, size_square_meters, contractor, address_of_the_first_file, address_of_the_second_file, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, size_square_meters, contractor, address_of_the_first_file, address_of_the_second_file, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id]
     );
     
     res.status(201).json({ message: 'Project created successfully', projectId: result.insertId });
@@ -77,7 +84,7 @@ exports.updateProject = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, size_square_meters, contractor, start_date, end_date } = req.body;
+  const { name, size_square_meters, contractor, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id } = req.body;
   const address_of_the_first_file = req.files['address_of_the_first_file'] ? req.files['address_of_the_first_file'][0].path : '';
   const address_of_the_second_file = req.files['address_of_the_second_file'] ? req.files['address_of_the_second_file'][0].path : '';
 
@@ -97,8 +104,8 @@ exports.updateProject = async (req, res) => {
     }
 
     const result = await db.query(
-      'UPDATE projects SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ? WHERE id = ?',
-      [name, size_square_meters, contractor, address_of_the_first_file || existingProject[0].address_of_the_first_file, address_of_the_second_file || existingProject[0].address_of_the_second_file, start_date, end_date, projectId]
+      'UPDATE projects SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ?, application_type = ?, number_of_floors = ?, employee_id = ?, consultant = ?, supervisor = ?, number_of_manpower = ?, province_id = ? WHERE id = ?',
+      [name, size_square_meters, contractor, address_of_the_first_file || existingProject[0].address_of_the_first_file, address_of_the_second_file || existingProject[0].address_of_the_second_file, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id, projectId]
     );
 
     res.status(200).json({ message: 'Project updated successfully' });
