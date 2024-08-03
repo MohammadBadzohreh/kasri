@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../services/db'); // Adjust the path as needed
 const config = require('../config/config');
+const tokenBlacklist = require('../services/tokenBlocklist');
+
 
 exports.register = async (req, res) => {
     const { username, password } = req.body;
@@ -118,6 +120,30 @@ exports.changePassword = async (req, res) => {
     }
 };
 
+
+// sign out 
+
+exports.signOut = async (req, res) => {
+    const userId = req.user.userId;
+    const token = req.header('Authorization');
+
+    try {
+        // Invalidate the refresh token in the database
+        const [result] = await db.execute('UPDATE users SET refresh_token = NULL WHERE id = ?', [userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        // Blacklist the access token
+        tokenBlacklist.add(token);
+
+        res.status(200).json({ message: 'Signed out successfully' });
+    } catch (error) {
+        console.error('Error signing out:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 
 

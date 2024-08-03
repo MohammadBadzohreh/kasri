@@ -1,12 +1,18 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const db = require('../services/db'); // Adjust the path as needed
+const tokenBlacklist = require('../services/tokenBlocklist');
 
 async function authenticateToken(req, res, next) {
   const token = req.header('Authorization');
 
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: Token not provided.' });
+  }
+
+  // Check if the token is blacklisted
+  if (tokenBlacklist.has(token)) {
+    return res.status(403).json({ error: 'Forbidden: Token is blacklisted.' });
   }
 
   jwt.verify(token, config.jwt.accessSecret, async (err, user) => {

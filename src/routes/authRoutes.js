@@ -12,6 +12,10 @@ router.post('/register', authController.register);
 // Login route
 router.post('/login', authController.login);
 
+// sign out route 
+router.post('/sign-out', authenticateToken, authController.signOut);
+
+
 // Refresh token route
 router.post('/refresh', authController.refresh);
 
