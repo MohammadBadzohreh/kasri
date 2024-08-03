@@ -89,45 +89,37 @@ exports.login = async (req, res) => {
 };
 
 
-exports.login = async (req, res) => {
-    const { username, password } = req.body;
+
+// change password 
+
+exports.changePassword = async (req, res) => {
+    const { userId, newPassword } = req.body;
 
     // Validate input
-    if (!username || !password) {
-        return res.status(400).json({ error: 'Please provide both username and password.' });
+    if (!userId || !newPassword) {
+        return res.status(400).json({ error: 'Please provide both userId and new password.' });
     }
 
     try {
-        // Retrieve user from the database
-        const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        if (rows.length === 0 || !rows[0].active) {
-            return res.status(401).json({ error: 'Invalid credentials or inactive user.' });
+        // Update the user's password in the database
+        const [result] = await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found.' });
         }
 
-        const user = rows[0];
-
-        // Check password
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Invalid credentials.' });
-        }
-
-        // Generate a new pair of JWT token and refresh token
-        const token = jwt.sign({ userId: user.id, username }, config.jwt.accessSecret, { expiresIn: '30m' });
-        const refreshToken = jwt.sign({ userId: user.id, username }, config.jwt.refreshSecret);
-
-        // Update the user's refresh token in the database
-        await db.execute('UPDATE users SET refresh_token = ? WHERE id = ?', [refreshToken, user.id]);
-
-        // Respond with the token and refresh token
-        res.json({ token, refreshToken });
+        res.status(200).json({ message: 'Password updated successfully' });
     } catch (error) {
-        console.error('Error logging in user:', error);
+        console.error('Error changing password:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+
+
 
 exports.refresh = async (req, res) => {
     const refreshToken = req.body.refreshToken;

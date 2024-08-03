@@ -21,6 +21,9 @@ router.put('/update-role', authenticateToken ,authorizeRoles('admin'),authContro
 // update user active 
 router.put('/active', authenticateToken ,authorizeRoles('admin'),authController.updateUserActiveStatus);
 
+// change-password 
+router.put('/change-password', authenticateToken, authorizeRoles('admin'), authController.changePassword);
+
 
 
 module.exports = router;
