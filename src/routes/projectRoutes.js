@@ -3,7 +3,10 @@
 const express = require('express');
 const router = express.Router();
 const projectController = require('../controllers/projectController');
+const excelController = require('../controllers/excelController');
 const { authenticateToken, authorizeRoles } = require('../middleware/authMiddleware');
+const multer = require('multer');
+
 
 // Create project route
 router.post('/', 
@@ -40,5 +43,19 @@ router.delete('/:projectId',
   authorizeRoles('admin'), // Only admins can delete projects
   projectController.deleteProject
 );
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
+
+// Route for uploading and processing the Excel file
+router.post('/uploaddd', upload.single('file'), excelController.uploadProjectFile);
 
 module.exports = router;

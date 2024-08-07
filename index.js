@@ -10,7 +10,7 @@ app.use('/auth', require('./src/routes/authRoutes'));
 
 
 // Projects Routes with authentication
-app.use('/projects', authenticateToken, require('./src/routes/projectRoutes'));
+app.use('/projects', require('./src/routes/projectRoutes'));
 
 // Message Routes with authentication
 app.use('/messages', authenticateToken, require('./src/routes/messageRoutes'));
