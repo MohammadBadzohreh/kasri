@@ -1,133 +1,74 @@
-const db = require('../services/db'); // Adjust the path as needed
+const db = require('../services/db'); 
 const fs = require('fs');
 const xlsx = require('xlsx');
-const { createCanvas } = require('canvas');
-const { Chart, registerables } = require('chart.js');
 
-// Register all necessary components
-Chart.register(...registerables);
 
 exports.uploadProjectFile = async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
-  }
-
   try {
-    // Read the uploaded Excel file
-    const workbook = xlsx.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const jsonData = xlsx.utils.sheet_to_json(worksheet);
+      const projectId = req.params.project_id;
 
-    const projectId = req.body.project_id; // assuming project_id is sent in the request body
+      if (!projectId) {
+          return res.status(400).json({ error: "Project ID is required" });
+      }
 
-    // Save specific data to MySQL
-    jsonData.forEach(row => {
-      const query = 'INSERT INTO project_tasks (project_id, wbs_name, task_description, resources, date, cost, deliverables, prerequisites, percent_complete) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      const values = [
-        projectId,
-        row['WBS Name'],
-        row['شرح بسته کاری'],
-        row['منابع/مسئول'],
-        row['زمان'],
-        row['هزینه'],
-        row['اقلام قابل تحویل'],
-        row['پیش‌نیاز'],
-        row['درصد کار']
-      ];
+      if (!req.file) {
+          return res.status(400).send('No file uploaded');
+      }
 
-      db.query(query, values, (error, results) => {
-        if (error) {
-          console.error('Error saving data to database:', error);
-        }
+      const filePath = req.file.path;
+      const workbook = xlsx.readFile(filePath);
+      const sheetNames = workbook.SheetNames;
+      const firstSheet = workbook.Sheets[sheetNames[0]];
+
+      // Convert the sheet data to JSON
+      const jsonData = xlsx.utils.sheet_to_json(firstSheet);
+
+      // Log the extracted JSON data for debugging
+      console.log('Extracted JSON data:', jsonData);
+
+      // Save the JSON data and project_id to the MySQL database
+      for (const row of jsonData) {
+          const { 
+              'WBS': wbs, 
+              'WBS Name': wbsName, 
+              'شرح بسته کاری': description, 
+              'منابع/مسئول': resources, 
+              'زمان': date, 
+              'هزینه پیش بینی ': estimatedCost, 
+              'اقلام قابل تحویل': deliverables, 
+              'درصد کار ': workProgress, 
+              'وضعیت ': status, 
+              'هزینه واقعی': actualCost, 
+              'درصد انجام کار ساب تسک ': subtaskProgress  // New field for subtask progress
+          } = row;
+
+          // Log the value of subtaskProgress to ensure it's being extracted
+          console.log('Subtask Progress:', subtaskProgress);
+
+          // Validate that the row contains essential data
+          if (!wbs || !wbsName || !description || !resources || !date) {
+              // Skip this row if it doesn't contain essential data
+              console.log('Skipping row due to missing essential data:', row);
+              continue;
+          }
+
+          console.log("Inserting row:", row);  // Debugging: log the row being inserted
+
+          // Insert the data into your MySQL table, including the new subtask progress
+          await db.query(
+              `INSERT INTO project_excel_files (project_id, wbs, wbs_name, description, resources, date, estimated_cost, deliverables, work_progress, status, actual_cost, subtask_progress)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [projectId, wbs, wbsName, description, resources, date, estimatedCost, deliverables, workProgress, status, actualCost, subtaskProgress]
+          );
+      }
+
+      res.status(200).json({
+          message: 'File uploaded, data extracted, and saved to the database successfully',
+          project_id: projectId,
+          data: jsonData
       });
-    });
-
-    // Process the data for the chart
-    let dataByDate = {};
-    jsonData.forEach(row => {
-      const date = row['زمان'];
-      if (!dataByDate[date]) {
-        dataByDate[date] = { done: 0, inProgress: 0, notStarted: 0 };
-      }
-      const percent = parseFloat(row['درصد کار']) || 0;
-      const status = row['وضعیت'] && row['وضعیت'].trim().toLowerCase();
-
-      console.log(`Date: ${date}, Status: ${status}, Percent: ${percent}`);
-
-      switch (status) {
-        case 'done':
-          dataByDate[date].done += percent;
-          break;
-        case 'in progress':
-        case 'inprogress':
-          dataByDate[date].inProgress += percent;
-          break;
-        case 'not started':
-          dataByDate[date].notStarted += percent;
-          break;
-        default:
-          console.log(`Unrecognized status: ${status}`);
-          break;
-      }
-    });
-
-    // Debugging: Log dataByDate to check values
-    console.log('dataByDate:', dataByDate);
-
-    // Prepare data for the chart
-    const labels = Object.keys(dataByDate);
-    const doneData = labels.map(date => dataByDate[date].done);
-    const inProgressData = labels.map(date => dataByDate[date].inProgress);
-    const notStartedData = labels.map(date => dataByDate[date].notStarted);
-
-    // Debugging: Log chart data to check values
-    console.log('doneData:', doneData);
-    console.log('inProgressData:', inProgressData);
-    console.log('notStartedData:', notStartedData);
-
-    const chartData = {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Done',
-          data: doneData,
-          backgroundColor: '#36a2eb',
-        },
-        {
-          label: 'In Progress',
-          data: inProgressData,
-          backgroundColor: '#ffcd56',
-        },
-        {
-          label: 'Not Started',
-          data: notStartedData,
-          backgroundColor: '#ff6384',
-        },
-      ],
-    };
-
-    // Create the chart and save it as an image
-    const width = 800;
-    const height = 600;
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: chartData,
-    });
-
-    const buffer = canvas.toBuffer('image/png');
-    fs.writeFileSync('./chart.png', buffer);
-
-    // Delete the uploaded file after processing
-    fs.unlinkSync(req.file.path);
-
-    // Send the JSON data back as the response
-    res.json({ chartData, dataByDate });
-  } catch (error) {
-    console.error('Error processing file:', error);
-    res.status(500).send('Error processing file.');
+  } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
   }
 };

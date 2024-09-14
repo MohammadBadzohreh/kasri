@@ -65,14 +65,22 @@ exports.getProject = async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
+    // Query to get the project details
     const [project] = await db.query('SELECT * FROM projects WHERE id = ?', [projectId]);
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    res.status(200).json({ project });
+    // Query to get the Excel file content associated with the project
+    const [excelData] = await db.query('SELECT * FROM project_excel_files WHERE project_id = ?', [projectId]);
+
+    // Return both project details and Excel file content
+    res.status(200).json({
+      project,
+      excelData
+    });
   } catch (error) {
-    console.error('Failed to retrieve project:', error);
+    console.error('Failed to retrieve project and Excel data:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
@@ -84,7 +92,22 @@ exports.updateProject = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, size_square_meters, contractor, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id } = req.body;
+  const {
+    name,
+    size_square_meters,
+    contractor,
+    start_date,
+    end_date,
+    application_type,
+    number_of_floors,
+    employee_id,
+    consultant,
+    supervisor,
+    number_of_manpower,
+    province_id,
+    excelUpdates  // This will be an array of objects for updating the `project_excel_files` table
+  } = req.body;
+
   const address_of_the_first_file = req.files['address_of_the_first_file'] ? req.files['address_of_the_first_file'][0].path : '';
   const address_of_the_second_file = req.files['address_of_the_second_file'] ? req.files['address_of_the_second_file'][0].path : '';
 
@@ -103,27 +126,60 @@ exports.updateProject = async (req, res) => {
       fs.unlinkSync(existingProject[0].address_of_the_second_file);
     }
 
-    const result = await db.query(
+    // Update project details
+    await db.query(
       'UPDATE projects SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ?, application_type = ?, number_of_floors = ?, employee_id = ?, consultant = ?, supervisor = ?, number_of_manpower = ?, province_id = ? WHERE id = ?',
-      [name, size_square_meters, contractor, address_of_the_first_file || existingProject[0].address_of_the_first_file, address_of_the_second_file || existingProject[0].address_of_the_second_file, start_date, end_date, application_type, number_of_floors, employee_id, consultant, supervisor, number_of_manpower, province_id, projectId]
+      [
+        name,
+        size_square_meters,
+        contractor,
+        address_of_the_first_file || existingProject[0].address_of_the_first_file,
+        address_of_the_second_file || existingProject[0].address_of_the_second_file,
+        start_date,
+        end_date,
+        application_type,
+        number_of_floors,
+        employee_id,
+        consultant,
+        supervisor,
+        number_of_manpower,
+        province_id,
+        projectId
+      ]
     );
 
-    res.status(200).json({ message: 'Project updated successfully' });
+    // Update related excel data (status, actual_cost, subtask_progress) in project_excel_files
+    if (excelUpdates && excelUpdates.length > 0) {
+      for (const update of excelUpdates) {
+        const { id, status, actual_cost, subtask_progress } = update;
+
+        // Update the specific row in project_excel_files for the given project
+        await db.query(
+          'UPDATE project_excel_files SET status = ?, actual_cost = ?, subtask_progress = ? WHERE project_id = ? AND id = ?',
+          [status, actual_cost, subtask_progress, projectId, id]
+        );
+      }
+    }
+
+    res.status(200).json({ message: 'Project and Excel data updated successfully' });
   } catch (error) {
     console.error('Failed to update project:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
+
 exports.deleteProject = async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
+    // Query to check if the project exists
     const [project] = await db.query('SELECT * FROM projects WHERE id = ?', [projectId]);
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // If there are associated files, remove them from the file system
     if (project[0].address_of_the_first_file) {
       fs.unlinkSync(project[0].address_of_the_first_file);
     }
@@ -131,17 +187,19 @@ exports.deleteProject = async (req, res) => {
       fs.unlinkSync(project[0].address_of_the_second_file);
     }
 
+    // Delete the related Excel data from the project_excel_files table
+    await db.query('DELETE FROM project_excel_files WHERE project_id = ?', [projectId]);
+
+    // Delete the project itself from the projects table
     await db.query('DELETE FROM projects WHERE id = ?', [projectId]);
 
-    res.status(200).json({ message: 'Project and associated files deleted successfully' });
+    res.status(200).json({ message: 'Project and associated files deleted successfully, including Excel data' });
   } catch (error) {
-    console.error('Failed to delete project:', error);
+    console.error('Failed to delete project and associated data:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
-
-// excel file
 
 
 

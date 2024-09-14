@@ -10,6 +10,7 @@ app.use('/auth', require('./src/routes/authRoutes'));
 
 
 // Projects Routes with authentication
+//TODO: add authentication
 app.use('/projects', require('./src/routes/projectRoutes'));
 
 // Message Routes with authentication

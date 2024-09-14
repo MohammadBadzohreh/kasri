@@ -28,7 +28,7 @@ router.get('/:projectId',
 
 // Update project route
 router.put('/:projectId', 
-  authorizeRoles('admin', 'site_manager'), // Admin and site managers can update projects
+  // authorizeRoles('admin', 'site_manager'), // Admin and site managers can update projects
   (req, res, next) => {
     console.log('Files:', req.files); // This may contain sensitive information, use with caution
     next(); // Call next() to proceed to the next middleware or route handler
@@ -55,7 +55,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Route for uploading and processing the Excel file
-router.post('/uploaddd', upload.single('file'), excelController.uploadProjectFile);
+router.post('/uploaddd/:project_id', upload.single('file'), excelController.uploadProjectFile);
 
 module.exports = router;
