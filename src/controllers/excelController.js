@@ -17,7 +17,6 @@ exports.uploadProjectFile = async (req, res) => {
         }
 
         const filePath = req.file.path;
-
         console.log(filePath);
         const workbook = xlsx.readFile(filePath);
         const sheetNames = workbook.SheetNames;
@@ -25,9 +24,6 @@ exports.uploadProjectFile = async (req, res) => {
 
         // Convert the sheet data to JSON
         const jsonData = xlsx.utils.sheet_to_json(firstSheet);
-        
-
-        // Log the extracted JSON data for debugging
         console.log('Extracted JSON data:', jsonData);
 
         // Save the JSON data and project_id to the MySQL database
@@ -46,36 +42,63 @@ exports.uploadProjectFile = async (req, res) => {
                 'هزینه واقعی': actualCost,
                 'درصد انجام کار ساب تسک': subtaskProgress,
                 'هزینه پیش بینی': forecastedCost,
-                'درصد کار پیش بینی ساب تسک ': subtaskForecastedProgress,  // Pay attention to spaces
-                'زمان شروع پیش بینی ': forecastedStartDate,  // Pay attention to spaces
-                'زمان پایان پیش بینی ': forecastedEndDate,  // Pay attention to spaces
+                'درصد کار پیش بینی ساب تسک ': subtaskForecastedProgress,
+                'زمان شروع پیش بینی ': forecastedStartDate,
+                'زمان پایان پیش بینی ': forecastedEndDate,
                 'زمان پایان واقعی': actualEndDate
             } = row;
-        
 
-            // Validate that the row contains essential data
+            // Perform calculations if values are valid
+            let pv = null, ev = null, ac = null, cpi = null, spi = null, sv = null;
+
+            if (estimatedCost != null && subtaskForecastedProgress != null) {
+                pv = estimatedCost * (subtaskForecastedProgress / 100);
+            }
+
+            if (estimatedCost != null && subtaskProgress != null) {
+                ev = estimatedCost * (subtaskProgress / 100);
+            }
+
+            if (actualCost != null) {
+                ac = actualCost;
+            }
+
+            if (ev != null && ac != null && ac !== 0) {
+                cpi = ev / ac;
+            }
+
+            if (ev != null && pv != null && pv !== 0) {
+                spi = ev / pv;
+            }
+
+            if (ev != null && pv != null) {
+                sv = ev - pv;
+            }
+
+            console.log('PV:', pv, 'EV:', ev, 'AC:', ac, 'CPI:', cpi, 'SPI:', spi, 'SV:', sv);
+
+            // Skip rows missing required data
             if (!wbs || !wbsName || !description || !resources || !date) {
-                // Skip this row if it doesn't contain essential data
                 console.log('Skipping row due to missing essential data:', row);
                 continue;
             }
 
-
-            // Insert the data into your MySQL table, including the new fields
+            // Insert the data into your MySQL table
             await db.query(
-                `INSERT INTO project_excel_files (project_id, wbs, wbs_name, description, resources, date, estimated_cost, deliverables, prerequisite, work_progress, status, actual_cost, subtask_progress, forecasted_cost, subtask_forecasted_progress, forecasted_start_date, forecasted_end_date, actual_end_date)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO project_excel_files (project_id, wbs, wbs_name, description, resources, date, estimated_cost, deliverables, prerequisite, work_progress, status, actual_cost, subtask_progress, forecasted_cost, subtask_forecasted_progress, forecasted_start_date, forecasted_end_date, actual_end_date, pv, ev, ac, cpi, spi, sv)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     projectId, wbs, wbsName, description, resources, date, 
                     estimatedCost, deliverables, prerequisite, workProgress, 
                     status, actualCost, subtaskProgress, forecastedCost, 
-                    subtaskForecastedProgress, forecastedStartDate, forecastedEndDate, actualEndDate
+                    subtaskForecastedProgress, forecastedStartDate, forecastedEndDate, 
+                    actualEndDate, pv, ev, ac, cpi, spi, sv
                 ]
             );
         }
 
         res.status(200).json({
-            message: 'File uploaded, data extracted, and saved to the database successfully',
+            message: 'File uploaded, data extracted, calculated, and saved to the database successfully',
             project_id: projectId,
             data: jsonData
         });
@@ -84,6 +107,9 @@ exports.uploadProjectFile = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+
+
 
 
 exports.updateSubtask = async (req, res) => {
