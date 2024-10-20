@@ -10,7 +10,7 @@ const multer = require('multer');
 
 // Create project route
 router.post('/', 
-  authorizeRoles('admin'), // Only admins can create projects
+  // authorizeRoles('admin'), // Only admins can create projects
   (req, res, next) => {
     console.log('Files:', req.files); // This may contain sensitive information, use with caution
     next(); // Call next() to proceed to the next middleware or route handler
@@ -22,7 +22,7 @@ router.post('/',
 
 // Get project route
 router.get('/:projectId', 
-  authorizeRoles('admin', 'excellent_supervisor', 'site_manager'), // Admin, Excellent supervisors, and site managers can view projects
+  // authorizeRoles('admin', 'excellent_supervisor', 'site_manager'), // Admin, Excellent supervisors, and site managers can view projects
   projectController.getProject
 );
 
@@ -40,7 +40,7 @@ router.put('/:projectId',
 
 // Delete project route
 router.delete('/:projectId', 
-  authorizeRoles('admin'), // Only admins can delete projects
+  // authorizeRoles('admin'), // Only admins can delete projects
   projectController.deleteProject
 );
 
@@ -56,5 +56,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/uploaddd/:project_id', upload.single('file'), excelController.uploadProjectFile);
+
+// Update subtask progress and status for a specific project
+router.put('/:projectId/subtasks/:subtaskId', 
+  // authorizeRoles('admin', 'site_manager'), // Admin and site managers can update subtasks
+  excelController.updateSubtask
+);
+
 
 module.exports = router;

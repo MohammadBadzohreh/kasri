@@ -88,10 +88,13 @@ exports.getProject = async (req, res) => {
 exports.updateProject = async (req, res) => {
   const projectId = req.params.projectId;
   const errors = validationResult(req);
+
+  // Validation check
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  // Extract project fields and excelUpdates from request body
   const {
     name,
     size_square_meters,
@@ -105,20 +108,21 @@ exports.updateProject = async (req, res) => {
     supervisor,
     number_of_manpower,
     province_id,
-    excelUpdates  // This will be an array of objects for updating the `project_excel_files` table
+    excelUpdates // An array of updates for the project_excel_files table
   } = req.body;
 
+  // Handle file paths for uploaded files (if any)
   const address_of_the_first_file = req.files['address_of_the_first_file'] ? req.files['address_of_the_first_file'][0].path : '';
   const address_of_the_second_file = req.files['address_of_the_second_file'] ? req.files['address_of_the_second_file'][0].path : '';
 
   try {
-    // Retrieve existing project to check for file updates
+    // Retrieve existing project for validation and file deletion
     const [existingProject] = await db.query('SELECT * FROM projects WHERE id = ?', [projectId]);
     if (!existingProject) {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    // Delete old files if new ones are uploaded
+    // Remove old files if new ones are uploaded
     if (address_of_the_first_file && existingProject[0].address_of_the_first_file) {
       fs.unlinkSync(existingProject[0].address_of_the_first_file);
     }
@@ -126,7 +130,7 @@ exports.updateProject = async (req, res) => {
       fs.unlinkSync(existingProject[0].address_of_the_second_file);
     }
 
-    // Update project details
+    // Update project details in the projects table
     await db.query(
       'UPDATE projects SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ?, application_type = ?, number_of_floors = ?, employee_id = ?, consultant = ?, supervisor = ?, number_of_manpower = ?, province_id = ? WHERE id = ?',
       [
@@ -148,12 +152,12 @@ exports.updateProject = async (req, res) => {
       ]
     );
 
-    // Update related excel data (status, actual_cost, subtask_progress) in project_excel_files
+    // Update related rows in the project_excel_files table
     if (excelUpdates && excelUpdates.length > 0) {
       for (const update of excelUpdates) {
         const { id, status, actual_cost, subtask_progress } = update;
 
-        // Update the specific row in project_excel_files for the given project
+        // Update the corresponding row in project_excel_files
         await db.query(
           'UPDATE project_excel_files SET status = ?, actual_cost = ?, subtask_progress = ? WHERE project_id = ? AND id = ?',
           [status, actual_cost, subtask_progress, projectId, id]
@@ -167,6 +171,7 @@ exports.updateProject = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 
 
 exports.deleteProject = async (req, res) => {
