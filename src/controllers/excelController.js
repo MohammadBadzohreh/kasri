@@ -25,6 +25,7 @@ exports.uploadProjectFile = async (req, res) => {
 
         // Convert the sheet data to JSON
         const jsonData = xlsx.utils.sheet_to_json(firstSheet);
+        
 
         // Log the extracted JSON data for debugging
         console.log('Extracted JSON data:', jsonData);
@@ -39,14 +40,18 @@ exports.uploadProjectFile = async (req, res) => {
                 'زمان': date,
                 'هزینه پیش بینی ': estimatedCost,
                 'اقلام قابل تحویل': deliverables,
+                'پیش‌نیاز': prerequisite,
                 'درصد کار ': workProgress,
                 'وضعیت ': status,
                 'هزینه واقعی': actualCost,
-                'درصد انجام کار ساب تسک ': subtaskProgress  // New field for subtask progress
+                'درصد انجام کار ساب تسک': subtaskProgress,
+                'هزینه پیش بینی': forecastedCost,
+                'درصد کار پیش بینی ساب تسک ': subtaskForecastedProgress,  // Pay attention to spaces
+                'زمان شروع پیش بینی ': forecastedStartDate,  // Pay attention to spaces
+                'زمان پایان پیش بینی ': forecastedEndDate,  // Pay attention to spaces
+                'زمان پایان واقعی': actualEndDate
             } = row;
-
-            // Log the value of subtaskProgress to ensure it's being extracted
-            console.log('Subtask Progress:', subtaskProgress);
+        
 
             // Validate that the row contains essential data
             if (!wbs || !wbsName || !description || !resources || !date) {
@@ -55,13 +60,17 @@ exports.uploadProjectFile = async (req, res) => {
                 continue;
             }
 
-            console.log("Inserting row:", row);  // Debugging: log the row being inserted
 
-            // Insert the data into your MySQL table, including the new subtask progress
+            // Insert the data into your MySQL table, including the new fields
             await db.query(
-                `INSERT INTO project_excel_files (project_id, wbs, wbs_name, description, resources, date, estimated_cost, deliverables, work_progress, status, actual_cost, subtask_progress)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [projectId, wbs, wbsName, description, resources, date, estimatedCost, deliverables, workProgress, status, actualCost, subtaskProgress]
+                `INSERT INTO project_excel_files (project_id, wbs, wbs_name, description, resources, date, estimated_cost, deliverables, prerequisite, work_progress, status, actual_cost, subtask_progress, forecasted_cost, subtask_forecasted_progress, forecasted_start_date, forecasted_end_date, actual_end_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    projectId, wbs, wbsName, description, resources, date, 
+                    estimatedCost, deliverables, prerequisite, workProgress, 
+                    status, actualCost, subtaskProgress, forecastedCost, 
+                    subtaskForecastedProgress, forecastedStartDate, forecastedEndDate, actualEndDate
+                ]
             );
         }
 
