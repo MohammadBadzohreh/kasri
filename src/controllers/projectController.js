@@ -63,8 +63,23 @@ exports.createProject = async (req, res) => {
 
 exports.getProject = async (req, res) => {
   const projectId = req.params.projectId;
-
-  try {
+  const {userId , role} = req.user; 
+    try {
+      // Allow access to all projects for admin or site_manager roles
+      if (role === 'admin' || role === 'site_manager') {
+        console.log('Admin or Site Manager accessing the project');
+      } else {
+        // Check if the user has access to the project
+        const [accessCheck] = await db.query(
+          `SELECT 1 FROM project_users WHERE project_id = ? AND user_id = ?`,
+          [projectId, userId]
+        );
+  
+        // Deny access if the user is not linked to the project
+        if (accessCheck.length === 0) {
+          return res.status(403).json({ message: 'Access denied to this project' });
+        }
+      }
     // Query to get the project details
     const [project] = await db.query('SELECT * FROM projects WHERE id = ?', [projectId]);
     if (!project) {
@@ -72,18 +87,23 @@ exports.getProject = async (req, res) => {
     }
 
     // Query to get the Excel file content associated with the project
-    const [excelData] = await db.query('SELECT * FROM project_excel_files WHERE project_id = ?', [projectId]);
+    const excelData = await db.query(
+      'SELECT * FROM project_excel_files WHERE project_id = ?',
+      [projectId]
+    );
 
     // Return both project details and Excel file content
     res.status(200).json({
       project,
-      excelData
+      excelData,
     });
   } catch (error) {
     console.error('Failed to retrieve project and Excel data:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
 
 exports.updateProject = async (req, res) => {
   const projectId = req.params.projectId;
