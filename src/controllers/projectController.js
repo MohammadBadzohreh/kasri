@@ -239,10 +239,6 @@ exports.addUserToProject = async (req, res) => {
 };
 
 
-
-
-
-
 exports.deleteProject = async (req, res) => {
   const projectId = req.params.projectId;
 
@@ -273,6 +269,37 @@ exports.deleteProject = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
+exports.getAllProjects = async (req, res) => {
+  const { role, id: userId } = req.user; 
+  console.log(req.user);
+
+  try {
+    let projects;
+
+    if (role === 'admin' || role === 'site_manager') {
+      projects = await db.query('SELECT * FROM projects');
+    } else {
+      projects = await db.query(
+        `SELECT p.* 
+         FROM projects p
+         INNER JOIN project_users pu ON p.id = pu.project_id
+         WHERE pu.user_id = ?`,
+        [userId]
+      );
+    }
+
+    res.status(200).json({
+      message: 'Projects retrieved successfully',
+      projects,
+    });
+  } catch (error) {
+    console.error('Failed to retrieve projects:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 
 
 

@@ -67,6 +67,9 @@ router.put('/:projectId/subtasks/:subtaskId',
 
 router.post('/:projectId/add/user', projectController.addUserToProject);
 
+router.get('/projects/all', projectController.getAllProjects);
+
+
 
 
 module.exports = router;
