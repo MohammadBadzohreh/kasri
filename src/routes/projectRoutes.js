@@ -45,6 +45,8 @@ router.delete('/:projectId',
 );
 
 
+
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -57,11 +59,14 @@ const upload = multer({ storage });
 
 router.post('/uploaddd/:project_id', upload.single('file'), excelController.uploadProjectFile);
 
-// Update subtask progress and status for a specific project
 router.put('/:projectId/subtasks/:subtaskId', 
-  // authorizeRoles('admin', 'site_manager'), // Admin and site managers can update subtasks
+  authorizeRoles('admin', 'site_manager'), // Admin and site managers can update subtasks
   excelController.updateSubtask
 );
+
+
+router.post('/:projectId/add/user', projectController.addUserToProject);
+
 
 
 module.exports = router;

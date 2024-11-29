@@ -194,6 +194,55 @@ exports.updateProject = async (req, res) => {
 
 
 
+exports.addUserToProject = async (req, res) => {
+  const projectId = req.params.projectId;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  try {
+    // Check if the project exists
+    const [project] = await db.query('SELECT 1 FROM projects WHERE id = ?', [projectId]);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Check if the user exists
+    const [user] = await db.query('SELECT 1 FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the user is already assigned to the project
+    const [existing] = await db.query(
+      'SELECT 1 FROM project_users WHERE project_id = ? AND user_id = ?',
+      [projectId, userId]
+    );
+    console.log(existing)
+    if (existing.length !==0) {
+      return res.status(200).json({ message: 'User already assigned to the project' }); 
+    }
+
+    // Add the user to the project
+    await db.query('INSERT INTO project_users (project_id, user_id) VALUES (?, ?)', [
+      projectId,
+      userId,
+    ]);
+
+    res.status(201).json({ message: 'User successfully added to the project' });
+  } catch (error) {
+    console.error('Failed to add user to project:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+
 exports.deleteProject = async (req, res) => {
   const projectId = req.params.projectId;
 
