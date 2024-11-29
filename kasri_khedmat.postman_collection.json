@@ -1,0 +1,1008 @@
+{
+	"info": {
+		"_postman_id": "2ae01a25-8fd3-455f-a3f5-6652910b5dea",
+		"name": "kasri_khedmat",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32468788"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"var token = jsonData.token; \r",
+									"var refreshToken = jsonData.refreshToken\r",
+									"\r",
+									"pm.environment.set(\"token\", token);\r",
+									"pm.environment.set(\"refreshToken\", refreshToken);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//   \"username\":\"MohammadBadzohreh2\",\r\n//   \"password\": \"Mohammad100%\"\r\n// }\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"var token = jsonData.token; \r",
+									"var refreshToken = jsonData.refreshToken\r",
+									"\r",
+									"pm.environment.set(\"token\", token);\r",
+									"pm.environment.set(\"refreshToken\", refreshToken);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgyIiwiaWF0IjoxNzIwNTkxMDgwLCJleHAiOjE3MjA1OTI4ODB9.HQwAQAcSTca75DusuzBNT1rLelP4q4usAuhYIFkCep4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//   \"username\": \"MohammadBadzohreh\",\r\n//   \"password\": \"Mohammad100%\"\r\n// }\r\n{\r\n  \"username\":\"aa\",\r\n  \"password\": \"ALI\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get refresh token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/refresh",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "protected_route",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "jwt",
+							"jwt": [
+								{
+									"key": "isSecretBase64Encoded",
+									"value": false,
+									"type": "boolean"
+								},
+								{
+									"key": "algorithm",
+									"value": "HS256",
+									"type": "string"
+								},
+								{
+									"key": "payload",
+									"value": "{}",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								},
+								{
+									"key": "headerPrefix",
+									"value": "Bearer",
+									"type": "string"
+								},
+								{
+									"key": "queryParamKey",
+									"value": "token",
+									"type": "string"
+								},
+								{
+									"key": "header",
+									"value": "{}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoia2FyaW0iLCJpYXQiOjE3MDY4Njc5NDgsImV4cCI6MTcwNjg2OTc0OH0.bkmg92F88bIkJP_lOCywgaKhpfu8EmiCS0bNVS0DzFw",
+								"type": "text"
+							},
+							{
+								"key": "Refresh-Token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoia2FyaW0iLCJpYXQiOjE3MDY4Njc5NDh9.DzMOQUr8cbFT-Wvt2-DMMKcufrDhSPxYzIpEOYaJ70U",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/protected",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"protected"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update role",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userId\": \"9\",\r\n  \"role\": \"admin\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/update-role",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"update-role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update active status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userId\": 5,\r\n  \"active\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/active",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": \"8\",\r\n    \"newPassword\": \"MM\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/auth/change-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT \\\r\n  http://localhost:3000/auth/change-password \\\r\n  -H \"Authorization: Bearer <YOUR_ACCESS_TOKEN>\" \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -d '{\r\n    \"userId\": \"<USER_ID>\",\r\n    \"newPassword\": \"<NEW_PASSWORD>\"\r\n}'\r\n"
+					},
+					"response": []
+				},
+				{
+					"name": "sign out",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/auth/sign-out",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"auth",
+								"sign-out"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \\\r\n  http://localhost:3000/auth/sign-out \\\r\n  -H \"Authorization: Bearer <YOUR_ACCESS_TOKEN>\"\r\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Example Project\n",
+									"type": "text"
+								},
+								{
+									"key": "size_square_meters",
+									"value": "1000",
+									"type": "text"
+								},
+								{
+									"key": "contractor",
+									"value": "John Doe Construction",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "2024-03-05",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2024-08-05",
+									"type": "text"
+								},
+								{
+									"key": "address_of_the_first_file",
+									"type": "file",
+									"src": "screen shots/Screenshot (2).png"
+								},
+								{
+									"key": "address_of_the_second_file",
+									"type": "file",
+									"src": "screen shots/Screenshot (4).png"
+								},
+								{
+									"key": "province_id",
+									"value": "1",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/projects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgiLCJpYXQiOjE3MjAxNjk3NjEsImV4cCI6MTcyMDE3MTU2MX0.EtPbCBpyarkRqyCil_ILp9l2zzL5Wr8UO0-mHD1NCKs",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/projects/28",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects",
+								"28"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsInVzZXJuYW1lIjoiYWEiLCJpYXQiOjE3MzI4OTQ3NzksImV4cCI6MTczMjg5NjU3OX0.zjWpGZFJIs4dIH-ovlurxwxibDSuglff10y8su2lQ_w",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/projects/37",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects",
+								"37"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "mohammad",
+									"type": "text"
+								},
+								{
+									"key": "size_square_meters",
+									"value": "1000",
+									"type": "text"
+								},
+								{
+									"key": "contractor",
+									"value": "Contractor Name",
+									"type": "text"
+								},
+								{
+									"key": "start_date",
+									"value": "2024-07-01",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-07-01",
+									"type": "text"
+								},
+								{
+									"key": "application_type",
+									"value": "تجاری",
+									"type": "text"
+								},
+								{
+									"key": "number_of_floors",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "employee_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "consultant",
+									"value": "Consultant Name",
+									"type": "text"
+								},
+								{
+									"key": "supervisor",
+									"value": "Supervisor Name",
+									"type": "text"
+								},
+								{
+									"key": "number_of_manpower",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "address_of_the_first_file",
+									"type": "file",
+									"src": "tamrin/tamrin.pdf"
+								},
+								{
+									"key": "address_of_the_second_file",
+									"type": "file",
+									"src": "tamrin/tamrin.pdf"
+								},
+								{
+									"key": "province_id",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/projects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update project",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Updated Project\",\r\n  \"size_square_meters\": 2000,\r\n  \"contractor\": \"New Contractor\",\r\n  \"start_date\": \"2024-01-01\",\r\n  \"end_date\": \"2025-01-01\",\r\n  \"application_type\": \"New Application Type\",\r\n  \"number_of_floors\": 5,\r\n  \"employee_id\": 2,\r\n  \"consultant\": \"New Consultant\",\r\n  \"supervisor\": \"New Supervisor\",\r\n  \"number_of_manpower\": 50,\r\n  \"province_id\": 1,\r\n  \"excelUpdates\": [\r\n    {\r\n      \"id\": 1,\r\n      \"status\": \"inProgress\",\r\n      \"actual_cost\": 1500,\r\n      \"subtask_progress\": 80\r\n    },\r\n    {\r\n      \"id\": 2,\r\n      \"status\": \"done\",\r\n      \"actual_cost\": 2500,\r\n      \"subtask_progress\": 100\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/projects/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT \"http://localhost:3000/projects/1\" \\\r\n-H \"Content-Type: application/json\" \\\r\n-d '{\r\n  \"name\": \"Updated Project\",\r\n  \"size_square_meters\": 2000,\r\n  \"contractor\": \"New Contractor\",\r\n  \"start_date\": \"2024-01-01\",\r\n  \"end_date\": \"2025-01-01\",\r\n  \"application_type\": \"New Application Type\",\r\n  \"number_of_floors\": 5,\r\n  \"employee_id\": 2,\r\n  \"consultant\": \"New Consultant\",\r\n  \"supervisor\": \"New Supervisor\",\r\n  \"number_of_manpower\": 50,\r\n  \"province_id\": 1,\r\n  \"excelUpdates\": [\r\n    {\r\n      \"id\": 1,\r\n      \"status\": \"inProgress\",\r\n      \"actual_cost\": 1500,\r\n      \"subtask_progress\": 80\r\n    },\r\n    {\r\n      \"id\": 2,\r\n      \"status\": \"done\",\r\n      \"actual_cost\": 2500,\r\n      \"subtask_progress\": 100\r\n    }\r\n  ]\r\n}'\r\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status and Progress bar",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH_TOKEN",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"subtask_progress\":100\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/projects/35/subtasks/28",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects",
+								"35",
+								"subtasks",
+								"28"
+							]
+						},
+						"description": "Generated from cURL: curl --location --request PUT 'http://your-server-url/api/projects/{projectId}/subtasks/{subtaskId}' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Authorization: Bearer YOUR_AUTH_TOKEN' \\\r\n--data-raw '{\r\n    \"subtask_progress\": 75\r\n}'\r\n"
+					},
+					"response": []
+				},
+				{
+					"name": "upload excel project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "wbs.xlsx"
+								},
+								{
+									"key": "project_id",
+									"value": "35",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/projects/uploaddd/37",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"projects",
+								"uploaddd",
+								"37"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST http://localhost:3000/api/projects/upload \\\r\n     -F \"file=@path/to/your/excel/file.xlsx\" \\\r\n     -F \"project_id=1\"\r\n"
+					},
+					"response": []
+				},
+				{
+					"name": "add user to the project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer your-auth-token"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://your-api-domain.com/api/projects/1/users",
+							"protocol": "http",
+							"host": [
+								"your-api-domain",
+								"com"
+							],
+							"path": [
+								"api",
+								"projects",
+								"1",
+								"users"
+							]
+						},
+						"description": "Generated from cURL: curl --location --request POST 'http://your-api-domain.com/api/projects/1/users' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Authorization: Bearer your-auth-token' \\\r\n--data-raw '{\r\n    \"userId\": 2\r\n}'\r\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "upload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages/upload",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "receiver_id",
+									"value": "9",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "your_message",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "tamrin/project.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages/1/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"1",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send message Copy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "receiver_id",
+									"value": "9",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "dmvsfklnbjdvmflv",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [
+										"tamrin/project.pdf",
+										"tamrin/tamrin.pdf"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages/send",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Message",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "receiver_id",
+									"value": "receiver_id_value",
+									"type": "text"
+								},
+								{
+									"key": "message",
+									"value": "your_message",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/path/to/your/file"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/messages/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"messages",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "create Document",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{token}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Document Name",
+							"type": "text"
+						},
+						{
+							"key": "contractor_id",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Document description",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"type": "file",
+							"src": []
+						},
+						{
+							"key": "instructions",
+							"type": "file",
+							"src": "tamrin/tamrin.pdf"
+						},
+						{
+							"key": "contract",
+							"type": "file",
+							"src": "tamrin/tamrin.pdf"
+						},
+						{
+							"key": "permissions",
+							"type": "file",
+							"src": "tamrin/tamrin.pdf"
+						},
+						{
+							"key": "map",
+							"type": "file",
+							"src": "tamrin/tamrin.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/document/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"document",
+						"create"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
