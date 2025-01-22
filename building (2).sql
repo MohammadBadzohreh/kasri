@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Oct 20, 2024 at 08:05 AM
+-- Generation Time: Jan 22, 2025 at 01:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,7 +68,8 @@ INSERT INTO `documents` (`Id`, `name`, `contractor_id`, `description`, `status`,
 (2, 'Document Name', 1, 'Document description', 'uploads\\documents\\1721790778635.pdf', 'uploads\\documents\\1721790778643.pdf', 'uploads\\documents\\1721790778656.pdf', 'uploads\\documents\\1721790778667.pdf', 'uploads\\documents\\1721790778682.pdf'),
 (3, 'Document Name', 1, 'Document description', 'uploads\\documents\\1721801797396.pdf', 'uploads\\documents\\1721801797409.pdf', 'uploads\\documents\\1721801797419.pdf', 'uploads\\documents\\1721801797432.pdf', 'uploads\\documents\\1721801797446.pdf'),
 (4, 'Document Name', 1, 'Document description', NULL, 'uploads\\documents\\1721801839591.pdf', 'uploads\\documents\\1721801839606.pdf', 'uploads\\documents\\1721801839621.pdf', 'uploads\\documents\\1721801839637.pdf'),
-(5, 'Document Name', 1, 'Document description', NULL, 'uploads\\documents\\1721801903445.pdf', 'uploads\\documents\\1721801903461.pdf', 'uploads\\documents\\1721801903476.pdf', 'uploads\\documents\\1721801903495.pdf');
+(5, 'Document Name', 1, 'Document description', NULL, 'uploads\\documents\\1721801903445.pdf', 'uploads\\documents\\1721801903461.pdf', 'uploads\\documents\\1721801903476.pdf', 'uploads\\documents\\1721801903495.pdf'),
+(6, 'Document Name', 1, 'Document description', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -117,7 +118,9 @@ INSERT INTO `messages` (`id`, `sender_id`, `receiver_id`, `message`, `file_path`
 (6, 2, 8, 'your_message', '[\"uploads\\\\messages\\\\files-1721117707135-845134402-project.pdf\"]', '2024-07-16 08:15:07', 0),
 (7, 2, 9, 'your_message', '[\"uploads\\\\messages\\\\files-1721800336203-737432451-project.pdf\"]', '2024-07-24 05:52:16', 0),
 (8, 2, 9, 'dmvsfklnbjdvmflv', '[\"uploads\\\\messages\\\\files-1721800371632-948726862-project.pdf\"]', '2024-07-24 05:52:51', 0),
-(9, 2, 9, 'dmvsfklnbjdvmflv', '[\"uploads\\\\messages\\\\files-1721800427776-385752341-project.pdf\",\"uploads\\\\messages\\\\files-1721800427786-279395800-tamrin.pdf\"]', '2024-07-24 05:53:47', 0);
+(9, 2, 9, 'dmvsfklnbjdvmflv', '[\"uploads\\\\messages\\\\files-1721800427776-385752341-project.pdf\",\"uploads\\\\messages\\\\files-1721800427786-279395800-tamrin.pdf\"]', '2024-07-24 05:53:47', 0),
+(10, 11, 9, 'dmvsfklnbjdvmflv', '[]', '2024-11-06 05:56:00', 0),
+(11, 11, 9, 'مسیج فارسی', '[]', '2024-11-06 05:56:20', 0);
 
 -- --------------------------------------------------------
 
@@ -249,6 +252,26 @@ CREATE TABLE `project_tasks` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `project_users`
+--
+
+CREATE TABLE `project_users` (
+  `id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `project_users`
+--
+
+INSERT INTO `project_users` (`id`, `project_id`, `user_id`) VALUES
+(1, 35, 6),
+(2, 37, 6);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `provinces`
 --
 
@@ -290,10 +313,12 @@ INSERT INTO `users` (`id`, `username`, `password`, `refresh_token`, `type`, `cre
 (3, 'karim', '$2b$10$tJ9K9qhPET5BNQLK0Bp1ruLQD.k/WjLliIQesmZnbEnwHeOtRJVX.', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoia2FyaW0iLCJpYXQiOjE3MjEwMzQyODl9.sj6eKphJ8SkmFAQof59ryyCC-mbNdCAXJaCbP9aTaHY', 'user', '2024-02-02 08:46:05', 'admin', 1),
 (4, 'karimبالتdhfgj,vcfgئل', '$2b$10$vLOHGf6s4Mjgll4vlpR3Luug2zTyI849lBmpaSgefCr48/xmijcrK', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInVzZXJuYW1lIjoia2FyaW3YqNin2YTYqmRoZmdqLHZjZmfYptmEIiwiaWF0IjoxNzA5NjM5OTQxfQ.WkSkkoRzeTnBPeXjbGN74ajBHCnQqpeahfmyU_jpVpY', 'user', '2024-03-05 11:59:01', 'site_manager', 1),
 (5, 'karimبالتdhfgj,vcfgئل', '$2b$10$LcRt0F1L6Rp6A1QwIJtTRuasPMtrvyp0A0H7JMR3xe3OGFR67wNbG', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInVzZXJuYW1lIjoia2FyaW3YqNin2YTYqmRoZmdqLHZjZmfYptmEIiwiaWF0IjoxNzIwMTIzNDcwfQ.YgXMfATL2AuzYKUY2G3KWe5kDP5gBpT-FyruTCUeS_I', 'user', '2024-07-04 20:04:30', 'site_manager', 1),
-(6, 'aa', '$2b$10$1lGeuvdU0ixPycQWGlUCnelA7peoCJRj0wvyLlCmN7n7a43x9UaTK', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsInVzZXJuYW1lIjoiYWEiLCJpYXQiOjE3MjYzMzQwMDB9.RzK5dcUNWjL3OT2vGcuJSUbO9wXCdgWcsFu16oMroW4', 'user', '2024-07-04 20:14:16', 'admin', 1),
+(6, 'aa', '$2b$10$1lGeuvdU0ixPycQWGlUCnelA7peoCJRj0wvyLlCmN7n7a43x9UaTK', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsInVzZXJuYW1lIjoiYWEiLCJpYXQiOjE3MzMyOTA1NTF9.JV1dkDj7yHIyXE8VgCDDX8YUTaU6KkWxmh3m0c9nbVA', 'user', '2024-07-04 20:14:16', 'excellent_supervisor', 1),
 (7, 'MohammadBadzohreh', '$2b$10$Wx7HHeAo7.Ml0wTBEu9N1ukA0kHTrO6do24sRFyr4o/g0/oP04oWG', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgiLCJpYXQiOjE3MjAxNjk3NjF9.kIefV7PiO9JiiPHfTLQlLxzITgWHlHY2f7ry9c4lgq8', 'user', '2024-07-05 08:56:01', 'admin', 1),
-(8, 'MohammadBadzohreh', '$2b$10$zfWhGYzn4xyBAMgNz/3X.OFHicNb.hw7/evVVmvWzlTTli/e0hRXO', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgiLCJpYXQiOjE3MjA1OTEwNjd9.CORcpiIaYhvlIYWfep0tC_jAMQakJkab6tjVnHC9Kv8', 'user', '2024-07-10 05:57:47', 'site_manager', 1),
-(9, 'MohammadBadzohreh2', '$2b$10$2NBV0eeHKfoT236ZoulhgOhYPnh52OEDyJgZbxbGKwK6vvOzdqyqq', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgyIiwiaWF0IjoxNzIwNTkxMDgwfQ.G3wq9Se-ZjnNGzD4v7tm-AjE5Fy5pAc-UqTHHBYox60', 'user', '2024-07-10 05:58:00', 'admin', 1);
+(8, 'MohammadBadzohreh', '$2b$10$zfWhGYzn4xyBAMgNz/3X.OFHicNb.hw7/evVVmvWzlTTli/e0hRXO', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgiLCJpYXQiOjE3MjA1OTEwNjd9.CORcpiIaYhvlIYWfep0tC_jAMQakJkab6tjVnHC9Kv8', 'user', '2024-07-10 05:57:47', 'excellent_supervisor', 1),
+(9, 'MohammadBadzohreh2', '$2b$10$2NBV0eeHKfoT236ZoulhgOhYPnh52OEDyJgZbxbGKwK6vvOzdqyqq', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksInVzZXJuYW1lIjoiTW9oYW1tYWRCYWR6b2hyZWgyIiwiaWF0IjoxNzIwNTkxMDgwfQ.G3wq9Se-ZjnNGzD4v7tm-AjE5Fy5pAc-UqTHHBYox60', 'user', '2024-07-10 05:58:00', 'admin', 1),
+(10, 'MohammadBadzohreh233', '$2b$10$GPHMbls9mCKe8YyQKL9EB.06aXyCZDg0Rt/pAQdW36SNl/4mBXUPm', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJ1c2VybmFtZSI6Ik1vaGFtbWFkQmFkem9ocmVoMjMzIiwiaWF0IjoxNzMwODcwMjQzfQ.Fht2c7oblJnw9aSl3puYaSxHd3iP4S92BpFonoojiWc', 'user', '2024-11-06 05:16:37', 'site_manager', 1),
+(11, 'MohammadBadzohreh121', '$2b$10$TEbwctgX.zEtwYFZ.ohSzup9pJrLZRNhNuRSud/62.AMSOgrI0kz6', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjExLCJ1c2VybmFtZSI6Ik1vaGFtbWFkQmFkem9ocmVoMTIxIiwiaWF0IjoxNzMwODcyMjcwfQ.ChDKZpLI-qDNPx4a0Fisp2izofWTuLOhQJZJM6nuXSo', 'user', '2024-11-06 05:44:04', 'admin', 1);
 
 --
 -- Indexes for dumped tables
@@ -350,6 +375,14 @@ ALTER TABLE `project_tasks`
   ADD KEY `project_id` (`project_id`);
 
 --
+-- Indexes for table `project_users`
+--
+ALTER TABLE `project_users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `project_id` (`project_id`,`user_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `provinces`
 --
 ALTER TABLE `provinces`
@@ -369,7 +402,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `documents`
 --
 ALTER TABLE `documents`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `employees`
@@ -381,7 +414,7 @@ ALTER TABLE `employees`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `projects`
@@ -402,6 +435,12 @@ ALTER TABLE `project_tasks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
+-- AUTO_INCREMENT for table `project_users`
+--
+ALTER TABLE `project_users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `provinces`
 --
 ALTER TABLE `provinces`
@@ -411,7 +450,7 @@ ALTER TABLE `provinces`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
@@ -448,6 +487,13 @@ ALTER TABLE `project_excel_files`
 --
 ALTER TABLE `project_tasks`
   ADD CONSTRAINT `project_tasks_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`);
+
+--
+-- Constraints for table `project_users`
+--
+ALTER TABLE `project_users`
+  ADD CONSTRAINT `project_users_ibfk_1` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `project_users_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
