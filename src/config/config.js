@@ -5,7 +5,7 @@ module.exports = {
     user: 'root',
     password: '',
     database: 'building',
-    port: 3307 // Change to your actual port if it's different
+    port: 3306 // Change to your actual port if it's different
   },
 
   // Expanded JWT configuration
