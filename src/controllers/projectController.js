@@ -5,6 +5,9 @@ const multer = require('multer');
 const db = require('../services/db'); // Adjust the path as needed
 const fs = require('fs');
 
+const path = require('path');
+const XLSX = require('xlsx');
+
 // Configure storage for Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -106,15 +109,14 @@ exports.getProject = async (req, res) => {
 
 
 exports.updateProject = async (req, res) => {
-  const projectId = req.params.projectId;
-  const errors = validationResult(req);
+  const { projectId } = req.params;
 
-  // Validation check
+  // Validate input data
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  // Extract project fields and excelUpdates from request body
   const {
     name,
     size_square_meters,
@@ -128,37 +130,28 @@ exports.updateProject = async (req, res) => {
     supervisor,
     number_of_manpower,
     province_id,
-    excelUpdates // An array of updates for the project_excel_files table
   } = req.body;
 
-  // Handle file paths for uploaded files (if any)
-  const address_of_the_first_file = req.files['address_of_the_first_file'] ? req.files['address_of_the_first_file'][0].path : '';
-  const address_of_the_second_file = req.files['address_of_the_second_file'] ? req.files['address_of_the_second_file'][0].path : '';
+  // Safely extract file paths
+  const address_of_the_first_file = req.files?.address_of_the_first_file
+    ? req.files.address_of_the_first_file[0].path
+    : null;
+  const address_of_the_second_file = req.files?.address_of_the_second_file
+    ? req.files.address_of_the_second_file[0].path
+    : null;
 
   try {
-    // Retrieve existing project for validation and file deletion
-    const [existingProject] = await db.query('SELECT * FROM projects WHERE id = ?', [projectId]);
-    if (!existingProject) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    // Remove old files if new ones are uploaded
-    if (address_of_the_first_file && existingProject[0].address_of_the_first_file) {
-      fs.unlinkSync(existingProject[0].address_of_the_first_file);
-    }
-    if (address_of_the_second_file && existingProject[0].address_of_the_second_file) {
-      fs.unlinkSync(existingProject[0].address_of_the_second_file);
-    }
-
-    // Update project details in the projects table
-    await db.query(
-      'UPDATE projects SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ?, application_type = ?, number_of_floors = ?, employee_id = ?, consultant = ?, supervisor = ?, number_of_manpower = ?, province_id = ? WHERE id = ?',
+    // Update the project in the database
+    const result = await db.query(
+      `UPDATE projects
+       SET name = ?, size_square_meters = ?, contractor = ?, address_of_the_first_file = ?, address_of_the_second_file = ?, start_date = ?, end_date = ?, application_type = ?, number_of_floors = ?, employee_id = ?, consultant = ?, supervisor = ?, number_of_manpower = ?, province_id = ?
+       WHERE id = ?`,
       [
         name,
         size_square_meters,
         contractor,
-        address_of_the_first_file || existingProject[0].address_of_the_first_file,
-        address_of_the_second_file || existingProject[0].address_of_the_second_file,
+        address_of_the_first_file,
+        address_of_the_second_file,
         start_date,
         end_date,
         application_type,
@@ -168,24 +161,15 @@ exports.updateProject = async (req, res) => {
         supervisor,
         number_of_manpower,
         province_id,
-        projectId
+        projectId,
       ]
     );
 
-    // Update related rows in the project_excel_files table
-    if (excelUpdates && excelUpdates.length > 0) {
-      for (const update of excelUpdates) {
-        const { id, status, actual_cost, subtask_progress } = update;
-
-        // Update the corresponding row in project_excel_files
-        await db.query(
-          'UPDATE project_excel_files SET status = ?, actual_cost = ?, subtask_progress = ? WHERE project_id = ? AND id = ?',
-          [status, actual_cost, subtask_progress, projectId, id]
-        );
-      }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Project not found' });
     }
 
-    res.status(200).json({ message: 'Project and Excel data updated successfully' });
+    res.status(200).json({ message: 'Project updated successfully' });
   } catch (error) {
     console.error('Failed to update project:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -302,7 +286,185 @@ exports.getAllProjects = async (req, res) => {
 
 
 
+exports.searchProjects = async (req, res) => {
+  const {
+    name,
+    size_square_meters,
+    contractor,
+    start_date,
+    end_date,
+    application_type,
+    number_of_floors,
+    employee_id,
+    consultant,
+    supervisor,
+    number_of_manpower,
+    province_id
+  } = req.query; // Extract query parameters
+
+  try {
+    // Initialize query and parameters
+    let query = 'SELECT * FROM projects WHERE 1=1'; // Start with a condition that is always true
+    const params = [];
+
+    // Dynamically add filters based on provided query parameters
+    if (name) {
+      query += ' AND name LIKE ?';
+      params.push(`%${name}%`);
+    }
+    if (size_square_meters) {
+      query += ' AND size_square_meters = ?';
+      params.push(size_square_meters);
+    }
+    if (contractor) {
+      query += ' AND contractor LIKE ?';
+      params.push(`%${contractor}%`);
+    }
+    if (start_date) {
+      query += ' AND start_date >= ?';
+      params.push(start_date);
+    }
+    if (end_date) {
+      query += ' AND end_date <= ?';
+      params.push(end_date);
+    }
+    if (application_type) {
+      query += ' AND application_type = ?';
+      params.push(application_type);
+    }
+    if (number_of_floors) {
+      query += ' AND number_of_floors = ?';
+      params.push(number_of_floors);
+    }
+    if (employee_id) {
+      query += ' AND employee_id = ?';
+      params.push(employee_id);
+    }
+    if (consultant) {
+      query += ' AND consultant LIKE ?';
+      params.push(`%${consultant}%`);
+    }
+    if (supervisor) {
+      query += ' AND supervisor LIKE ?';
+      params.push(`%${supervisor}%`);
+    }
+    if (number_of_manpower) {
+      query += ' AND number_of_manpower = ?';
+      params.push(number_of_manpower);
+    }
+    if (province_id) {
+      query += ' AND province_id = ?';
+      params.push(province_id);
+    }
+
+    // Execute the query
+    const [projects] = await db.query(query, params);
+
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error('Failed to search projects:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 
 
+exports.exportToExcel = async (req, res) => {
+  const { projectId } = req.params;
 
+  try {
+    // Fetch the excelData related to the project
+    const [excelData] = await db.query('SELECT * FROM project_excel_files WHERE project_id = ?', [projectId]);
+
+    if (excelData.length === 0) {
+      return res.status(404).json({ message: 'No Excel data found for the given project' });
+    }
+
+    // Remove unwanted fields from the data
+    const filteredData = excelData.map(({ date, forecasted_start_date, forecasted_end_date, actual_end_date, ...rest }) => rest);
+
+    // Create a workbook and a sheet
+    const workbook = XLSX.utils.book_new();
+
+    // Add filteredData to the sheet
+    const sheetData = [Object.keys(filteredData[0])].concat(filteredData.map((data) => Object.values(data)));
+    const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Excel Data');
+
+    // Write the workbook to a file
+    const filePath = path.join(__dirname, `../exports/excel_data_project_${projectId}.xlsx`);
+    XLSX.writeFile(workbook, filePath);
+
+    // Send the file to the client
+    res.download(filePath, `excel_data_project_${projectId}.xlsx`, (err) => {
+      if (err) {
+        console.error('Failed to download file:', err);
+        res.status(500).json({ message: 'Failed to download file' });
+      }
+
+      // Remove the file after sending it
+      fs.unlinkSync(filePath);
+    });
+  } catch (error) {
+    console.error('Failed to export Excel data:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+exports.getChartData = async (req, res) => {
+  const { projectId } = req.params;
+
+  try {
+    // Fetch data related to the project
+    const [excelData] = await db.query('SELECT * FROM project_excel_files WHERE project_id = ?', [projectId]);
+
+    if (excelData.length === 0) {
+      return res.status(404).json({ message: 'No data found for the given project' });
+    }
+
+    // Prepare chart data
+    const chartData = {
+      wbsNames: [],
+      workProgress: [],
+      estimatedCosts: [],
+      actualCosts: [],
+    };
+
+    // Populate chart data
+    excelData.forEach((row) => {
+      chartData.wbsNames.push(row.wbs_name);
+      chartData.workProgress.push(parseFloat(row.work_progress));
+      chartData.estimatedCosts.push(parseFloat(row.estimated_cost));
+      chartData.actualCosts.push(parseFloat(row.actual_cost));
+    });
+
+    // Return the data in a chart-friendly format
+    res.status(200).json({
+      labels: chartData.wbsNames,
+      datasets: [
+        {
+          label: 'Work Progress (%)',
+          data: chartData.workProgress,
+          borderColor: 'blue',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        },
+        {
+          label: 'Estimated Cost',
+          data: chartData.estimatedCosts,
+          borderColor: 'green',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        },
+        {
+          label: 'Actual Cost',
+          data: chartData.actualCosts,
+          borderColor: 'red',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        },
+      ],
+    });
+  } catch (error) {
+    console.error('Failed to retrieve chart data:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 

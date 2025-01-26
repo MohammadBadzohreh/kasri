@@ -3,12 +3,16 @@
 const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authenticateToken, authorizeRoles } = require('../middleware/authMiddleware');
 const ensureUploadDirectoryExists = require('../middleware/ensureDirectoryExists');
 
 
 // Send a message (files are optional)
 router.post('/send', authenticateToken, ensureUploadDirectoryExists, messageController.upload, messageController.sendMessage);
+
+
+router.get('/all-messages', authenticateToken,authorizeRoles('admin'), messageController.getAllMessages);
+
 
 // Get messages between two users
 router.get('/:userId1/:userId2?', authenticateToken, messageController.getMessages);

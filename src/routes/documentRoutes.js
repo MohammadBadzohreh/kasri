@@ -11,4 +11,11 @@ const  uploadFile  = require('../middleware/uploadFileDocument');
 router.post('/create', authenticateToken, uploadFile,  documentController.createDocument);
 
 
+router.get('/:document_id/get', documentController.getDocument);
+
+router.get('/search', documentController.searchDocumentByName);
+
+
+
+
 module.exports = router;

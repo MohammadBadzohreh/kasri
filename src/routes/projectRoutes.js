@@ -70,6 +70,17 @@ router.post('/:projectId/add/user', projectController.addUserToProject);
 router.get('/projects/all', projectController.getAllProjects);
 
 
+router.get('/search/projects', projectController.searchProjects);
+
+
+router.get('/export/:projectId', projectController.exportToExcel);
+
+router.get('/chart-data/:projectId', projectController.getChartData);
+
+
+
+
+
 
 
 module.exports = router;

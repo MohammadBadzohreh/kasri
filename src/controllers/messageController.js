@@ -23,10 +23,19 @@ exports.sendMessage = async (req, res) => {
   const files = req.files ? req.files.map(file => file.path) : [];
 
   try {
+    // Check if receiver_id exists in the users table
+    const [receiverResult] = await db.execute('SELECT id FROM users WHERE id = ?', [receiver_id]);
+
+    if (receiverResult.length === 0) {
+      return res.status(404).json({ message: 'Receiver does not exist' });
+    }
+
+    // Proceed with inserting the message
     const result = await db.execute(
       'INSERT INTO messages (sender_id, receiver_id, message, file_path, `read`) VALUES (?, ?, ?, ?, ?)',
       [sender_id, receiver_id, message, JSON.stringify(files), false]
     );
+
     res.status(201).json({ message: 'Message sent successfully', messageId: result.insertId });
   } catch (error) {
     console.error('Failed to send message:', error);
@@ -85,6 +94,22 @@ exports.markMessageAsRead = async (req, res) => {
     res.status(200).json({ message: 'Message marked as read.' });
   } catch (error) {
     console.error('Failed to mark message as read:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+exports.getAllMessages = async (req, res) => {
+  try {
+    // Check if the user has the 'admin' role
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. Admins only.' });
+    }
+
+    // Query to retrieve all messages
+    const [messages] = await db.execute('SELECT * FROM messages');
+
+    res.status(200).json({ messages });
+  } catch (error) {
+    console.error('Failed to retrieve all messages:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };

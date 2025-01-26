@@ -72,3 +72,46 @@ exports.createDocument = async (req, res) => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   };
+
+
+  // Get Document
+exports.getDocument = async (req, res) => {
+  const { document_id } = req.params; // Extract document ID from request parameters
+
+  try {
+    // Retrieve the document by its ID
+    const [document] = await db.execute('SELECT * FROM Documents WHERE id = ?', [document_id]);
+
+    if (!document.length) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    res.status(200).json({ document: document[0] });
+  } catch (error) {
+    console.error('Failed to retrieve document:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+exports.searchDocumentByName = async (req, res) => {
+  const { name } = req.query; 
+  if (!name) {
+    return res.status(400).json({ error: 'Name query parameter is required' });
+  }
+
+  try {
+    const [documents] = await db.execute(
+      'SELECT * FROM Documents WHERE name LIKE ?',
+      [`%${name}%`]
+    );
+
+    if (!documents.length) {
+      return res.status(404).json({ message: 'No documents found matching the search criteria' });
+    }
+
+    res.status(200).json({ documents });
+  } catch (error) {
+    console.error('Failed to search documents:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
